@@ -1,0 +1,15 @@
+#cloud-config
+# Send public key to the instance. Connect with
+#
+#   ssh ubuntu@"$(get_container_ip example-container)" cat .ssh/authorized_keys
+#
+users:
+  - name: ubuntu
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh-authorized-keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH4nysdaTznrpgtrBGhLIKbrvps6jGcSiaLurl8VWEbf dule@air.local
+    shell: /bin/bash
+
+package_upgrade: true
+packages:
+  - openssh-server

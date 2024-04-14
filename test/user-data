@@ -1,0 +1,10 @@
+#cloud-config
+password: password
+chpasswd:
+  expire: False
+users:
+  - name: ubuntu
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB...
+
+
