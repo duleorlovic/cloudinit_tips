@@ -84,7 +84,7 @@ start machine
 lxc launch ubuntu:focal i1 --config=user.user-data="$(cat user-data)"
 
 # or in three steps
-lxc init ubuntu-daily:jammy i1
+lxc init ubuntu:focal i1
 lxc config set i1 user.user-data - < user-data
 # check that the right file was adde to userdata
 lxc config show i1
@@ -141,13 +141,14 @@ cat /var/log/cloud-init.log
 Assert valid config, and show files where it is stored
 
 1. user-data at /var/lib/cloud/instance/cloud-config.txt
+  but original is on /var/lib/cloud/instance/user-data.txt
 2. vendor-data at /var/lib/cloud/instance/vendor-cloud-config.txt
 3. network-config at /var/lib/cloud/instance/network-config.json
 
 /var/lib/cloud/instance is a link to /var/lib/cloud/instances/i1
 
-Main cloud init configuration is /etc/cloud/cloud.cfg (provided by os, install
-fresh with `apt intall cloud-init`)
+Main cloud init configuration is /etc/cloud/cloud.cfg 
+(provided by os, install fresh with `apt intall cloud-init`)
 
 ```
 cloud-init schema --system --annotate
