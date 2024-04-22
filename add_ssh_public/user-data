@@ -21,3 +21,4 @@ packages:
 
 bootcmd:
   - date > /root/birth_certificate
+  - cloud-init schema --system > /root/cloud-init-schema.log
