@@ -157,14 +157,16 @@ changed, USER_REQUEST directed request to update).
 
 ### Status
 
-Check the status
+Check the status print cloudinit progress
 ```
-cloud-init status --wait
+cloud-init status
+status: running
 
-# print cloudinit progress
+cloud-init status --wait
+.....
+# when it is finished
 status: done
-```
-```
+
 cloud-init status --long
 ```
 
@@ -197,6 +199,11 @@ cloud-init query userdata
 cloud-init query --list-keys
 # show the value
 cloud-init query ds.meta_data
+```
+
+also you can check if file exists and its timestamp when cloud-init completed
+```
+/var/lib/cloud/instance/boot-finished
 ```
 
 ### Schema
@@ -250,16 +257,72 @@ created.
 
 ### Clean & init to rerun
 
-Remove the state (from /var/lib/cloud) logs and cache and reboot
+Remove the state, logs and cache and reboot
+for example after updating terraform scripts and t apply
 ```
+# this will remove whole folder `/var/lib/cloud`
+cloud-init clean
+
+# remove also the logs
 cloud-init clean --logs --reboot
 ```
+
 rerun cloudinit init, configuration and final modules
+On AWS it will fetch user data from AWS IMDS (instance metada service)
 ```
+# check latest version
+curl http://169.254.169.254/latest/user-data
+
+# this will fetch user-data and store locally, mount filesystem, regenerate keys
+# this will recreate instance folder
 # note that it will create semaphores in /var/lib/cloud/instance/sem
 cloud-init init
+
+### THIS IS A PLACE TO UPDATE /var/lib/cloud/instance/cloud-config.txt
+
+# this will show file for userdata
+# from /var/lib/cloud/instance/user-data.txt
+# not from /var/lib/cloud/instance/cloud-config.txt
+cloud-init query userdata
+# but the following command will use /var/lib/cloud/instance/cloud-config.txt
+
+# process #cloud-config, create scripts/runcmd
 cloud-init modules -m config
+# since config is default module, we can simple run
+cloud-init modules
+
+### IF YOU WANT TO UPDATE /var/lib/cloud/instance/cloud-config.txt recreate runcmd
+### without previous clean you can do with manually remove but also a file from sem
+### rm /var/lib/cloud/instance/scripts/runcmd
+### rm /var/lib/cloud/instance/sem/config_runcmd
+### cloud-init modules # to recreate /var/lib/cloud/instance/scripts/runcmd
+### manually run runcmd since final is performed only after clean
+### /var/lib/cloud/instance/scripts/runcmd
+### to run final you need to rm -rf /var/lib/cloud/instance/sem/*
+
+# run runcmd step, logs in /var/log/cloud-init-output.log
 cloud-init modules -m final
+# see the output
+cat /var/log/cloud-init-output.log
+# also check the status
+cloud-init status
+cat /var/lib/cloud/data/status.json
+```
+
+Run specific section or manually run generated scripts
+```
+cloud-init single --name=write_files
+cloud-init single --name=runcmd
+/var/lib/cloud/instance/scripts/runcmd
+```
+
+Easier could be to use alias and link to log
+```
+alias c=cloud-init
+c init
+
+alias cl="cat /var/log/cloud-init-output.log"
+cl
 ```
 https://cloudinit.readthedocs.io/en/latest/howto/rerun_cloud_init.html#run-a-single-cloud-init-module
 You can run single module
@@ -360,3 +423,7 @@ so `netplan apply` or creating new instance from the image will use this routes
 
 TODO:
 https://blog.slyon.de/2023/07/10/netplan-and-systemd-networkd-on-debian-bookworm/
+TODO: https://www.youtube.com/watch?v=2_m6EUo6VOI cloud init talk
+TODO: https://www.youtube.com/watch?v=shiIi38cJe4 proxmox template with cloud
+init
+TODO: https://www.youtube.com/watch?v=1joQfUZQcPg
