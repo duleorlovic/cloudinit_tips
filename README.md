@@ -279,6 +279,7 @@ curl http://169.254.169.254/latest/user-data
 cloud-init init
 
 ### THIS IS A PLACE TO UPDATE /var/lib/cloud/instance/cloud-config.txt
+#### not is the time to localy customize cloud config user data
 
 # this will show file for userdata
 # from /var/lib/cloud/instance/user-data.txt
@@ -286,7 +287,8 @@ cloud-init init
 cloud-init query userdata
 # but the following command will use /var/lib/cloud/instance/cloud-config.txt
 
-# process #cloud-config, create scripts/runcmd
+# process #cloud-config, create scripts/runcmd, execute write_files, prepare for
+# final stage
 cloud-init modules -m config
 # since config is default module, we can simple run
 cloud-init modules
@@ -310,25 +312,29 @@ cat /var/lib/cloud/data/status.json
 ```
 
 Run specific section or manually run generated scripts
+https://cloudinit.readthedocs.io/en/latest/howto/rerun_cloud_init.html#run-a-single-cloud-init-module
 ```
 cloud-init single --name=write_files
 cloud-init single --name=runcmd
+cloud-init single --name cc_ssh --frequency always
+
 /var/lib/cloud/instance/scripts/runcmd
 ```
 
 Easier could be to use alias and link to log
 ```
+# .bash_aliases
 alias c=cloud-init
-c init
-
+alias cf="cloud-init modules -m final"
 alias cl="cat /var/log/cloud-init-output.log"
+alias call="cloud-init clean --logs && cloud-init init && cloud-init modules &&
+cloud-init modules -m final"
+
+c init
 cl
 ```
-https://cloudinit.readthedocs.io/en/latest/howto/rerun_cloud_init.html#run-a-single-cloud-init-module
-You can run single module
-```
-sudo cloud-init single --name cc_ssh --frequency always
-```
+
+write files generate parent folders as root user
 
 ## Modules
 
@@ -351,7 +357,7 @@ network:
   ethernets: []
 ```
 
-Supported devide types are:
+Supported device types are:
 * `ethernets:`
 * `bonds:`
 * `bridges:`
